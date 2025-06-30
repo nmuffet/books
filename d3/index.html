@@ -5,27 +5,123 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <link rel="stylesheet" href="style.css">
+    <script src="script.js"></script>
+    <!-- This has to use this version of d3! Newer or minified version did not work!-->
+        <script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js" type="text/javascript"></script>
+<script src="d3waffle.js"></script>
 </head>
 <body>
-    <svg width="500">
-    <g transform="translate(70, 70)">
-      <circle r="40" />
-      <circle r="40" cx="120" />
-      <circle r="40" cx="240" />
-      <circle r="40" cx="360" />
-      <circle r="40" cx="480" />
-      <circle r="40" cx="620" />
-    </g>
 
+<div id="charts-container"></div>
 
-
-    </svg>
-<script src="script.js"></script>
 <script>
 
+// Helper function from the d3waffle example if slugify is needed by d3waffle internally for color lookup
+// This function converts a string into a URL-friendly "slug"
+function slugify(text) {
+  return text.toString().toLowerCase()
+    .replace(/\s+/g, '-')           // Replace spaces with -
+    .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
+    .replace(/\-\-+/g, '-')         // Replace multiple - with single -
+    .replace(/^-+/, '')             // Trim - from start of text
+    .replace(/-+$/, '');            // Trim - from end of text
+};
+
+
+
+d3.json("year_counts_list.json", function(d) {
+
+  console.log(d)
+
+   // --- Step 1: Collect all unique categories ---
+    let allCategories = [];
+    d.forEach(function(weekData) {
+        weekData.data.forEach(function(item) {
+            // Use the slugified name as the domain if the waffle chart expects it for color lookup
+            // Otherwise, use the raw category name.
+            // Based on your example, it looks like 'colorscale' is used with the slugified name.
+            let categoryKey = slugify(item.category);
+            if (allCategories.indexOf(categoryKey) === -1) {
+                allCategories.push(categoryKey);
+            }
+        });
+    });
+
+    console.log("All unique (slugified) categories found for color domain:", allCategories);
+
+    // --- Step 2: Define your global color range and create the color scale ---
+    // Example: You can use d3.scale.category20() or define your own colors.
+    // Ensure you have enough colors for all your unique categories.
+    let colorRange = d3.scale.category20().range(); // Using D3's built-in 20 colors
+    // If you need more colors, try d3.scale.category20b().range() or d3.scale.category20c().range()
+    // Or define your own: let colorRange = ["#FF0000", "#00FF00", "#0000FF", /* etc. */];
+
+    let globalColorScale = d3.scale.ordinal()
+        .domain(allCategories) // Domain uses the slugified categories
+        .range(colorRange);
+
+    let mainContainer = d3.select("#charts-container");
+
+    let chartContainers= mainContainer.selectAll(".chart-container")
+    .data(d)
+    .enter()
+    .append("div")
+    .attr("class", "chart-container")
+    .attr("id", function(d) {return "chart-" + d.week;});
+
+    chartContainers.each(function(d) {
+      let weekData = d.data;
+      let week = d.week;
+
+      d3.select(this).append("h3").text("Week: " + week);
+
+      let waffleInput = weekData.map(function(item) {
+        return {
+          name: item.category,
+          value: item.count
+        };
+
+      });
+ 
+
+      console.log("Waffle Input for week" + week + ":", waffleInput);
+
+      let chart = d3waffle()
+        .rows(3)
+        .colorscale(globalColorScale)
+        .height(100);
+
+      d3.select(this)
+      .datum(waffleInput)
+      .call(chart);
+    });
+  });
+
+
+
+    // data = d[0]['data']
+
+    // console.log(data)
+
+    // waffleInput = data.map(function(d) {
+    //     return {
+    //         name:  d.category,
+    //         value: d.count
+    //     }
+    // });
+
+    // console.log(waffleInput)
+
+    // let chart = d3waffle()
+    // .rows(3);
+
+    // d3.select('#chart')
+    // .datum(waffleInput)
+    // .call(chart);
 
 
 
 </script>
+
 </body>
 </html>

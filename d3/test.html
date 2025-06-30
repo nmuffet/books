@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js" type="text/javascript"></script>
+<script src="d3waffle.js"></script>
+</head>
+<body>
+
+<div id="chart"></div>
+
+<script>
+    var data = [
+  { "name": "type 1", "value": 102},
+  { "name": "type 2", "value": 65},
+  { "name": "type 3", "value": 43},
+  { "name": "type 4", "value": 12}
+];
+
+var chart = d3waffle();
+
+d3.select("#chart")
+  .datum(data)
+  .call(chart);
+
+
+
+</script>
+
+</body>
+</html>
